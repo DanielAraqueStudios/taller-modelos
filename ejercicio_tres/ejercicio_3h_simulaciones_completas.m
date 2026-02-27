@@ -1,0 +1,21 @@
+﻿%% EJERCICIO 3H: SIMULACIONES COMPLETAS - MASA-CILINDRO
+clear all; close all; clc;
+load('ejercicio_tres/datos_sistema.mat');
+load('ejercicio_tres/pid_ziegler_nichols.mat');
+load('ejercicio_tres/pid_especificaciones.mat');
+load('ejercicio_tres/sistema_retardo.mat');
+fprintf('EJERCICIO 3H: Simulaciones Completas\n\n');
+sys_cl_zn = feedback(C_zn*G, 1);
+sys_cl_spec = feedback(C_spec*G, 1);
+figure('Position', [50 50 1400 900]);
+subplot(2,2,1); step(G, sys_cl_zn, sys_cl_spec, 10); legend('LA', 'PID ZN', 'PID Espec'); title('Escalón'); grid on;
+subplot(2,2,2); step(sys_cl_zn, sys_cl_delay1, 5); legend('Sin retardo', 'Con retardo'); title('Con Retardo τ=0.5s'); grid on;
+subplot(2,2,3); t=0:0.01:10; lsim(sys_cl_zn, t, t); hold on; lsim(sys_cl_spec, t, t); plot(t,t,'k--'); legend('ZN','Espec','Ref'); title('Rampa'); grid on;
+subplot(2,2,4); bode(C_zn*G, C_spec*G); legend('ZN', 'Espec'); grid on;
+info_zn = stepinfo(sys_cl_zn); info_spec = stepinfo(sys_cl_spec);
+[Gm_zn, Pm_zn] = margin(C_zn*G); [Gm_spec, Pm_spec] = margin(C_spec*G);
+metricas.info_zn = info_zn; metricas.info_spec = info_spec;
+metricas.margenes_ganancia = [Gm_zn, Gm_spec]; metricas.margenes_fase = [Pm_zn, Pm_spec];
+save('ejercicio_tres/metricas_desempeno.mat', 'metricas');
+saveas(gcf, 'ejercicio_tres/simulaciones_completas.png');
+fprintf('Análisis completo. Resultados guardados\n');

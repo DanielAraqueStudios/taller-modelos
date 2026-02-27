@@ -1,6 +1,6 @@
 %% SISTEMA MECÁNICO VIBRATORIO - DEFINICIÓN DE PARÁMETROS Y MODELO
 % Sistema de barra articulada con resortes y amortiguadores acoplados
-% Autor: Sistema de Control Automático
+% Autor: Daniel García Araque
 % Fecha: 2026
 
 clear all; close all; clc;

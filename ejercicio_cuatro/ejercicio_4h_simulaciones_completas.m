@@ -1,0 +1,21 @@
+﻿%% EJERCICIO 4H: SIMULACIONES COMPLETAS - SISTEMA DE PRESIÓN
+clear all; close all; clc;
+load('ejercicio_cuatro/datos_sistema.mat');
+load('ejercicio_cuatro/pid_ziegler_nichols.mat');
+load('ejercicio_cuatro/pid_especificaciones.mat');
+load('ejercicio_cuatro/sistema_retardo.mat');
+fprintf('EJERCICIO 4H: Simulaciones Completas\n\n');
+sys_cl_zn = feedback(C_zn*G, 1);
+sys_cl_spec = feedback(C_spec*G, 1);
+figure('Position', [50 50 1400 900]);
+subplot(2,2,1); step(G, sys_cl_zn, sys_cl_spec, 100); legend('LA', 'PID ZN', 'PID Espec'); title('Escalón'); grid on;
+subplot(2,2,2); step(sys_cl_zn, sys_cl_delay1, 100); legend('Sin retardo', 'Con retardo'); title('Con Retardo τ=0.7s'); grid on;
+subplot(2,2,3); bode(C_zn*G, C_spec*G); legend('ZN', 'Espec'); title('Bode'); grid on;
+subplot(2,2,4); rlocus(C_zn*G); title('Lugar Raíces ZN'); grid on;
+info_zn = stepinfo(sys_cl_zn); info_spec = stepinfo(sys_cl_spec);
+[Gm_zn, Pm_zn] = margin(C_zn*G); [Gm_spec, Pm_spec] = margin(C_spec*G);
+metricas.info_zn = info_zn; metricas.info_spec = info_spec;
+metricas.margenes_ganancia = [Gm_zn, Gm_spec]; metricas.margenes_fase = [Pm_zn, Pm_spec];
+save('ejercicio_cuatro/metricas_desempeno.mat', 'metricas');
+saveas(gcf, 'ejercicio_cuatro/simulaciones_completas.png');
+fprintf('Análisis completo. Resultados guardados\n');

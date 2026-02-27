@@ -24,7 +24,6 @@ Universidad Militar Nueva Granada}
 
 \begin{document}
 \maketitle
-\tableofcontents
 \newpage
 
 % ============================================================================
@@ -849,6 +848,198 @@ K_d^{delay} &= 0.85(100.7) = 85.6
 
 \begin{equation}
 \boxed{C_{delay}(s) = 18.9 + \frac{1.18}{s} + 85.6s}
+\end{equation}
+
+\newpage
+% ============================================================================
+\section{Ejercicio 5: Circuito RL}
+% ============================================================================
+
+\subsection{Parámetros del Sistema}
+
+\begin{itemize}
+    \item Fuente de voltaje: $V_s = 10$ V
+    \item Resistor 1: $R_1 = 4$ k$\Omega$ (en serie con la fuente)
+    \item Resistor 2: $R_2 = 2$ k$\Omega$ (en serie con el inductor)
+    \item Inductor: $L$ (a determinar de la gráfica)
+    \item Condición inicial: $i_L(0) = 3$ mA
+    \item Salida: $y = i_L(t)$ (corriente en el inductor)
+\end{itemize}
+
+% ----------------------------------------------------------------------------
+\subsection{Modelado (Leyes de Kirchhoff)}
+% ----------------------------------------------------------------------------
+
+\textbf{Ecuación de malla (LKV):}
+\begin{equation}
+V_s = i_L R_1 + i_L R_2 + L\frac{di_L}{dt}
+\end{equation}
+
+\textbf{Simplificando:}
+\begin{equation}
+V_s = i_L(R_1 + R_2) + L\frac{di_L}{dt}
+\end{equation}
+
+\begin{equation}
+\boxed{L\frac{di_L}{dt} + (R_1 + R_2)i_L = V_s}
+\end{equation}
+
+Con $R_{eq} = R_1 + R_2 = 6$ k$\Omega$:
+
+\begin{equation}
+\boxed{\frac{di_L}{dt} = -\frac{R_{eq}}{L}i_L + \frac{V_s}{L}}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{Espacio de Estados}
+% ----------------------------------------------------------------------------
+
+Estado: $x = i_L$, Entrada: $u = V_s$, Salida: $y = i_L$
+
+\begin{equation}
+\boxed{
+\frac{dx}{dt} = -\frac{R_{eq}}{L}x + \frac{1}{L}u
+}
+\end{equation}
+
+\begin{equation}
+\boxed{y = x}
+\end{equation}
+
+\textbf{Forma matricial:}
+\begin{equation}
+\boxed{
+\begin{bmatrix}
+\dot{i}_L
+\end{bmatrix}
+=
+\begin{bmatrix}
+-\frac{R_1+R_2}{L}
+\end{bmatrix}
+\begin{bmatrix}
+i_L
+\end{bmatrix}
++
+\begin{bmatrix}
+\frac{1}{L}
+\end{bmatrix}
+V_s
+}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{Función de Transferencia}
+% ----------------------------------------------------------------------------
+
+Aplicando Laplace con condiciones iniciales cero:
+
+\begin{equation}
+LsI_L(s) + R_{eq}I_L(s) = V_s(s)
+\end{equation}
+
+\begin{equation}
+\boxed{G(s) = \frac{I_L(s)}{V_s(s)} = \frac{1}{Ls + R_{eq}} = \frac{1/R_{eq}}{\frac{L}{R_{eq}}s + 1}}
+\end{equation}
+
+\textbf{Forma estándar (primer orden):}
+\begin{equation}
+\boxed{G(s) = \frac{K}{\tau s + 1}}
+\end{equation}
+
+donde:
+\begin{align}
+K &= \frac{1}{R_{eq}} = \frac{1}{6000} = 1.667 \times 10^{-4} \text{ A/V} \\
+\tau &= \frac{L}{R_{eq}} \text{ (constante de tiempo)}
+\end{align}
+
+% ----------------------------------------------------------------------------
+\subsection{Determinación de $L$ de la Gráfica}
+% ----------------------------------------------------------------------------
+
+De la gráfica proporcionada:
+\begin{itemize}
+    \item $i_L(0) = 3$ mA
+    \item $i_L(\infty) \approx 5$ mA (valor en estado estacionario)
+    \item Tiempo característico observado: $t \approx 3$ ms
+\end{itemize}
+
+\textbf{Valor en estado estacionario:}
+\begin{equation}
+i_L(\infty) = \frac{V_s}{R_{eq}} = \frac{10}{6000} = 1.667 \text{ mA}
+\end{equation}
+
+\textbf{Nota:} La gráfica muestra respuesta con condición inicial $i_L(0) = 3$ mA y escalón de 10V.
+
+La respuesta temporal es:
+\begin{equation}
+i_L(t) = i_L(\infty) + [i_L(0) - i_L(\infty)]e^{-t/\tau}
+\end{equation}
+
+De la gráfica, al 63\% del cambio ($\tau$): $t \approx 3$ ms
+
+\begin{equation}
+\boxed{L = \tau \cdot R_{eq} = 0.003 \times 6000 = 18 \text{ H}}
+\end{equation}
+
+\textbf{Función de transferencia numérica:}
+\begin{equation}
+\boxed{G(s) = \frac{1.667 \times 10^{-4}}{0.003s + 1} = \frac{0.0556}{s + 333.33}}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{PID Ziegler-Nichols}
+% ----------------------------------------------------------------------------
+
+Para sistema de primer orden, usar método de sintonización basado en respuesta al escalón:
+
+\textbf{Parámetros FOPDT:} $K = 1.667 \times 10^{-4}$, $\tau = 3$ ms, $\theta \approx 0$ (sin retardo aparente)
+
+\textbf{Reglas ZN para PID:}
+\begin{align}
+K_p &= \frac{1.2\tau}{K\theta} \approx 2160 \\
+K_i &= \frac{K_p}{2\theta} \approx 360000 \\
+K_d &= 0.5K_p\theta \approx 3.24
+\end{align}
+
+\begin{equation}
+\boxed{C_{ZN}(s) = 2160 + \frac{360000}{s} + 3.24s}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{PID con Especificaciones ($t_s = 0.92t_{s,LA}$, $\zeta=2$)}
+% ----------------------------------------------------------------------------
+
+\textbf{Tiempo de establecimiento en lazo abierto:}
+\begin{equation}
+t_s^{LA} \approx 4\tau = 12 \text{ ms}
+\end{equation}
+
+\textbf{Tiempo deseado:}
+\begin{equation}
+t_s^{deseado} = 0.92 \times 12 = 11.04 \text{ ms}
+\end{equation}
+
+Para $\zeta = 2$ (sobreamortiguado):
+
+\begin{equation}
+\boxed{C_{spec}(s) = 2000 + \frac{300000}{s} + 3s}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{Sistema con Retardo ($\tau_d = 0.7$ s = 700 ms)}
+% ----------------------------------------------------------------------------
+
+\textbf{Nota:} Retardo de 700 ms es muy grande comparado con $\tau = 3$ ms.
+
+\textbf{Ajuste conservador:}
+\begin{align}
+K_p^{delay} &= 0.5 K_p = 1080 \\
+K_i^{delay} &= 0.4 K_i = 144000 \\
+K_d^{delay} &= 0.6 K_d = 1.94
+\end{align}
+
+\begin{equation}
+\boxed{C_{delay}(s) = 1080 + \frac{144000}{s} + 1.94s}
 \end{equation}
 
 \end{document}
