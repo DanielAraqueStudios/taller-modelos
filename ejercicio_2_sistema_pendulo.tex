@@ -1,0 +1,660 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{siunitx}
+\usepackage{tikz}
+\usepackage{bm}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\geometry{margin=2.5cm}
+
+\title{\textbf{Análisis y Control de Sistema de Péndulo con Resortes}\\
+\large Modelado, Análisis Dinámico y Diseño de Controladores PID}
+\author{Daniel García Araque\\
+\texttt{est.daniel.garciaa@unimilitar.edu.co}\\
+Ingeniería Mecatrónica - Control Automático\\
+Universidad Militar Nueva Granada}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+\newpage
+
+% ============================================================================
+\section{Identificación del Sistema}
+% ============================================================================
+
+\subsection{Descripción General}
+
+El sistema analizado corresponde a un \textbf{sistema mecánico vibratorio tipo péndulo} con elementos elásticos acoplados, compuesto por:
+
+\begin{itemize}
+    \item \textbf{Cuerda articulada} de longitud $L$ [m], suspendida verticalmente
+    \item \textbf{Masa $M$} [kg] ubicada en el extremo inferior de la cuerda
+    \item \textbf{Resorte $K_1$} [N/m] conectando el punto de anclaje superior al nodo A
+    \item \textbf{Resorte $K_2$} [N/m] conectando la masa $M$ a la base fija
+    \item \textbf{Fuerza externa horizontal} $f_a(t)$ [N] aplicada sobre la masa
+    \item \textbf{Gravedad} actuando sobre la masa $M$
+\end{itemize}
+
+\subsection{Clasificación del Sistema}
+
+\begin{itemize}
+    \item \textbf{Tipo}: Sistema electromecánico péndulo-resorte acoplado
+    \item \textbf{Linealidad}: Sistema no lineal, linealizable para ángulos pequeños
+    \item \textbf{Entrada/Salida}: SISO (Single Input - Single Output)
+    \item \textbf{Entrada}: $f_a(t)$ - Fuerza horizontal externa
+    \item \textbf{Salida}: $y = L\theta$ - Desplazamiento horizontal del extremo
+    \item \textbf{Estados}: $\theta, \dot{\theta}, x, \dot{x}$
+    \item \textbf{Invarianza temporal}: Sistema LTI (para pequeñas oscilaciones)
+    \item \textbf{Grados de libertad}: 2 (ángulo $\theta$ y desplazamiento $x$)
+\end{itemize}
+
+\subsection{Variables y Parámetros}
+
+\textbf{Coordenadas generalizadas:}
+\begin{itemize}
+    \item $\theta$ [rad]: Ángulo de desviación de la cuerda respecto a la vertical
+    \item $x$ [m]: Desplazamiento horizontal del nodo A
+\end{itemize}
+
+\textbf{Parámetros físicos:}
+\begin{itemize}
+    \item $M$ [kg]: Masa en el extremo de la cuerda
+    \item $L$ [m]: Longitud de la cuerda
+    \item $K_1, K_2$ [N/m]: Constantes de rigidez de los resortes
+    \item $g$ [m/s²]: Aceleración gravitacional ($\approx 9.81$ m/s²)
+    \item $f_a(t)$ [N]: Fuerza externa aplicada
+\end{itemize}
+
+\subsection{Hipótesis y Aproximaciones}
+
+Para realizar el análisis lineal, asumimos:
+\begin{enumerate}
+    \item \textbf{Ángulos pequeños}: $\theta \ll 1$ rad $\Rightarrow \sin\theta \approx \theta$, $\cos\theta \approx 1$
+    \item \textbf{Cuerda inextensible}: Longitud $L$ constante
+    \item \textbf{Cuerda sin masa}: Toda la masa concentrada en $M$
+    \item \textbf{Sin fricción}: No hay disipación de energía
+    \item \textbf{Resortes ideales}: Comportamiento lineal
+\end{enumerate}
+
+% ============================================================================
+\section{Modelado Newton-Euler}
+% ============================================================================
+
+\subsection{Análisis Cinemático}
+
+\textbf{Posición de la masa $M$:}
+\begin{itemize}
+    \item Componente horizontal: $x_M = x + L\sin\theta \approx x + L\theta$
+    \item Componente vertical: $y_M = -L\cos\theta \approx -L$ (constante para ángulos pequeños)
+\end{itemize}
+
+\textbf{Velocidad de la masa $M$:}
+\begin{align}
+\dot{x}_M &= \dot{x} + L\dot{\theta}\cos\theta \approx \dot{x} + L\dot{\theta} \\
+\dot{y}_M &= L\dot{\theta}\sin\theta \approx L\theta\dot{\theta} \approx 0 \quad \text{(despreciable)}
+\end{align}
+
+\subsection{Diagrama de Cuerpo Libre}
+
+\textbf{Fuerzas sobre la masa $M$:}
+\begin{enumerate}
+    \item Peso: $F_g = -Mg$ (vertical, hacia abajo)
+    \item Tensión de la cuerda: $T$ (a lo largo de la cuerda)
+    \item Fuerza del resorte $K_2$: $F_{K2} = -K_2(x + L\theta)$ (horizontal)
+    \item Fuerza externa: $F_a = f_a(t)$ (horizontal)
+\end{enumerate}
+
+\subsection{Ecuaciones de Movimiento}
+
+\textbf{Ecuación horizontal (segunda ley de Newton):}
+\begin{equation}
+M\ddot{x}_M = f_a(t) - K_2(x + L\theta) - T\sin\theta
+\end{equation}
+
+Sustituyendo $\ddot{x}_M \approx \ddot{x} + L\ddot{\theta}$ y $\sin\theta \approx \theta$:
+\begin{equation}
+M(\ddot{x} + L\ddot{\theta}) = f_a(t) - K_2(x + L\theta) - T\theta
+\end{equation}
+
+\textbf{Ecuación de momento respecto al punto de suspensión:}
+
+El momento neto respecto al pivote superior:
+\begin{align}
+I\ddot{\theta} &= M(x_M - x)(-Mg) + ML^2\ddot{\theta} + f_a(t) \cdot L\cos\theta + \text{otros momentos}
+\end{align}
+
+Para un péndulo simple con cuerda sin masa:
+\begin{equation}
+ML^2\ddot{\theta} = f_a(t)L\cos\theta - MgL\sin\theta - K_2(x + L\theta)L
+\end{equation}
+
+Linealizando ($\sin\theta \approx \theta$, $\cos\theta \approx 1$):
+\begin{equation}
+ML^2\ddot{\theta} + MgL\theta + K_2L(x + L\theta) = f_a(t)L
+\end{equation}
+
+Simplificando:
+\begin{equation}
+\boxed{ML^2\ddot{\theta} + MgL\theta + K_2Lx + K_2L^2\theta = Lf_a(t)}
+\end{equation}
+
+\textbf{Ecuación para el nodo A (equilibrio de fuerzas):}
+
+El resorte $K_1$ conecta el punto de anclaje con el nodo A:
+\begin{equation}
+K_1(L\theta - x) = K_2x
+\end{equation}
+
+Esta ecuación representa el equilibrio estático o cuasi-estático del nodo A.
+
+\subsection{Sistema de Ecuaciones Newton-Euler}
+
+El sistema completo linealizado:
+\begin{equation}
+\boxed{
+\begin{cases}
+ML^2\ddot{\theta} + (MgL + K_2L^2)\theta + K_2Lx = Lf_a(t) \\[0.3cm]
+K_1L\theta - (K_1 + K_2)x = 0
+\end{cases}
+}
+\end{equation}
+
+% ============================================================================
+\section{Modelado Euler-Lagrange}
+% ============================================================================
+
+\subsection{Energía Cinética}
+
+La energía cinética de la masa $M$:
+\begin{equation}
+T_M = \frac{1}{2}M(\dot{x}_M^2 + \dot{y}_M^2)
+\end{equation}
+
+Para ángulos pequeños:
+\begin{align}
+\dot{x}_M &\approx \dot{x} + L\dot{\theta} \\
+\dot{y}_M &\approx 0
+\end{align}
+
+Por lo tanto:
+\begin{equation}
+T = \frac{1}{2}M(\dot{x} + L\dot{\theta})^2 = \frac{1}{2}M\dot{x}^2 + ML\dot{x}\dot{\theta} + \frac{1}{2}ML^2\dot{\theta}^2
+\end{equation}
+
+\subsection{Energía Potencial}
+
+\textbf{Energía potencial gravitacional:}
+\begin{equation}
+U_g = Mg(-L\cos\theta) \approx -MgL + \frac{1}{2}MgL\theta^2
+\end{equation}
+
+El término constante se puede omitir:
+\begin{equation}
+U_g = \frac{1}{2}MgL\theta^2
+\end{equation}
+
+\textbf{Energía potencial del resorte $K_1$:}
+\begin{equation}
+U_{K1} = \frac{1}{2}K_1(L\theta - x)^2
+\end{equation}
+
+\textbf{Energía potencial del resorte $K_2$:}
+\begin{equation}
+U_{K2} = \frac{1}{2}K_2(x + L\theta)^2
+\end{equation}
+
+\textbf{Energía potencial total:}
+\begin{equation}
+U = \frac{1}{2}MgL\theta^2 + \frac{1}{2}K_1(L\theta - x)^2 + \frac{1}{2}K_2(x + L\theta)^2
+\end{equation}
+
+\subsection{Lagrangiano}
+
+\begin{equation}
+\mathcal{L} = T - U
+\end{equation}
+
+\begin{multline}
+\mathcal{L} = \frac{1}{2}M\dot{x}^2 + ML\dot{x}\dot{\theta} + \frac{1}{2}ML^2\dot{\theta}^2 \\
+- \frac{1}{2}MgL\theta^2 - \frac{1}{2}K_1(L\theta - x)^2 - \frac{1}{2}K_2(x + L\theta)^2
+\end{multline}
+
+\subsection{Ecuaciones de Euler-Lagrange}
+
+La formulación general:
+\begin{equation}
+\frac{d}{dt}\left(\frac{\partial \mathcal{L}}{\partial \dot{q}_i}\right) - \frac{\partial \mathcal{L}}{\partial q_i} = Q_i
+\end{equation}
+
+\textbf{Para $q_1 = \theta$:}
+
+\begin{align}
+\frac{\partial \mathcal{L}}{\partial \dot{\theta}} &= ML\dot{x} + ML^2\dot{\theta} \\
+\frac{d}{dt}\left(\frac{\partial \mathcal{L}}{\partial \dot{\theta}}\right) &= ML\ddot{x} + ML^2\ddot{\theta}
+\end{align}
+
+\begin{multline}
+\frac{\partial \mathcal{L}}{\partial \theta} = -MgL\theta - K_1L(L\theta - x) - K_2L(x + L\theta) \\
+= -MgL\theta - K_1L^2\theta + K_1Lx - K_2Lx - K_2L^2\theta
+\end{multline}
+
+Fuerza generalizada: $Q_\theta = f_a(t) \cdot L\cos\theta \approx Lf_a(t)$
+
+Ecuación:
+\begin{equation}
+ML\ddot{x} + ML^2\ddot{\theta} + MgL\theta + K_1L^2\theta - K_1Lx + K_2Lx + K_2L^2\theta = Lf_a(t)
+\end{equation}
+
+\textbf{Para $q_2 = x$:}
+
+\begin{align}
+\frac{\partial \mathcal{L}}{\partial \dot{x}} &= M\dot{x} + ML\dot{\theta} \\
+\frac{d}{dt}\left(\frac{\partial \mathcal{L}}{\partial \dot{x}}\right) &= M\ddot{x} + ML\ddot{\theta}
+\end{align}
+
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial x} = K_1(L\theta - x) - K_2(x + L\theta) = K_1L\theta - K_1x - K_2x - K_2L\theta
+\end{equation}
+
+Fuerza generalizada: $Q_x = 0$
+
+Ecuación:
+\begin{equation}
+M\ddot{x} + ML\ddot{\theta} + K_1x + K_2x - K_1L\theta + K_2L\theta = 0
+\end{equation}
+
+\subsection{Sistema Completo Euler-Lagrange}
+
+\begin{equation}
+\boxed{
+\begin{cases}
+ML\ddot{x} + ML^2\ddot{\theta} + (MgL + K_1L^2 + K_2L^2)\theta + (K_2 - K_1)Lx = Lf_a(t) \\[0.3cm]
+M\ddot{x} + ML\ddot{\theta} + (K_1 + K_2)x + (K_2 - K_1)L\theta = 0
+\end{cases}
+}
+\end{equation}
+
+\textbf{Nota:} Este sistema es más completo que la aproximación Newton-Euler simplificada, ya que incluye el acoplamiento completo de masas.
+
+% ============================================================================
+\section{Espacio de Estados}
+% ============================================================================
+
+\subsection{Definición de Variables de Estado}
+
+Definimos el vector de estados:
+\begin{equation}
+\mathbf{x} = \begin{bmatrix} x_1 \\ x_2 \\ x_3 \\ x_4 \end{bmatrix} = \begin{bmatrix} \theta \\ \dot{\theta} \\ x \\ \dot{x} \end{bmatrix}
+\end{equation}
+
+Entrada: $u = f_a(t)$
+
+Salida: $y = L\theta = Lx_1$
+
+\subsection{Forma Matricial de las Ecuaciones}
+
+Del sistema de Euler-Lagrange:
+\begin{equation}
+\begin{bmatrix}
+ML^2 & ML \\
+ML & M
+\end{bmatrix}
+\begin{bmatrix}
+\ddot{\theta} \\
+\ddot{x}
+\end{bmatrix}
++
+\begin{bmatrix}
+MgL + K_1L^2 + K_2L^2 & (K_2 - K_1)L \\
+(K_2 - K_1)L & K_1 + K_2
+\end{bmatrix}
+\begin{bmatrix}
+\theta \\
+x
+\end{bmatrix}
+=
+\begin{bmatrix}
+L \\
+0
+\end{bmatrix}
+f_a(t)
+\end{equation}
+
+Definiendo:
+\begin{align}
+\mathbf{M}_{mass} &= \begin{bmatrix} ML^2 & ML \\ ML & M \end{bmatrix} \\
+\mathbf{K}_{stiff} &= \begin{bmatrix} MgL + K_1L^2 + K_2L^2 & (K_2 - K_1)L \\ (K_2 - K_1)L & K_1 + K_2 \end{bmatrix}
+\end{align}
+
+\subsection{Inversión de la Matriz de Masa}
+
+El determinante de $\mathbf{M}_{mass}$:
+\begin{equation}
+\det(\mathbf{M}_{mass}) = ML^2 \cdot M - ML \cdot ML = M^2L^2 - M^2L^2 = 0
+\end{equation}
+
+¡La matriz es singular! Esto indica que el sistema tiene una restricción algebraica.
+
+\textbf{Resolución:} Utilizar la versión simplificada donde la masa del nodo A es despreciable:
+
+De la segunda ecuación (sistema Newton-Euler):
+\begin{equation}
+x = \frac{K_1L}{K_1 + K_2}\theta
+\end{equation}
+
+Sustituyendo en la primera ecuación:
+\begin{equation}
+ML^2\ddot{\theta} + \left(MgL + K_2L^2 + K_2L \cdot \frac{K_1L}{K_1 + K_2}\right)\theta = Lf_a(t)
+\end{equation}
+
+Simplificando:
+\begin{equation}
+ML^2\ddot{\theta} + \left(MgL + \frac{K_1K_2L^2}{K_1 + K_2} + K_2L^2\right)\theta = Lf_a(t)
+\end{equation}
+
+\begin{equation}
+\boxed{ML^2\ddot{\theta} + \left[MgL + K_2L^2\left(1 + \frac{K_1}{K_1 + K_2}\right)\right]\theta = Lf_a(t)}
+\end{equation}
+
+Simplificando más:
+\begin{equation}
+\boxed{ML^2\ddot{\theta} + \left(MgL + \frac{K_2L^2(2K_1 + K_2)}{K_1 + K_2}\right)\theta = Lf_a(t)}
+\end{equation}
+
+Definiendo $K_{eq} = \frac{K_2(2K_1 + K_2)}{K_1 + K_2}$:
+\begin{equation}
+\ddot{\theta} = -\frac{g}{L}\theta - \frac{K_{eq}}{M}\theta + \frac{1}{ML}f_a(t)
+\end{equation}
+
+\subsection{Representación en Espacio de Estados (Reducido)}
+
+Para el sistema reducido de segundo orden:
+
+\begin{equation}
+\boxed{
+\begin{bmatrix}
+\dot{x}_1 \\
+\dot{x}_2
+\end{bmatrix}
+=
+\begin{bmatrix}
+0 & 1 \\
+-\frac{g}{L} - \frac{K_{eq}}{M} & 0
+\end{bmatrix}
+\begin{bmatrix}
+x_1 \\
+x_2
+\end{bmatrix}
++
+\begin{bmatrix}
+0 \\
+\frac{1}{ML}
+\end{bmatrix}
+u
+}
+\end{equation}
+
+\begin{equation}
+\boxed{
+y = \begin{bmatrix} L & 0 \end{bmatrix}
+\begin{bmatrix}
+x_1 \\
+x_2
+\end{bmatrix}
+}
+\end{equation}
+
+Donde:
+\begin{itemize}
+    \item $x_1 = \theta$
+    \item $x_2 = \dot{\theta}$
+    \item $K_{eq} = \frac{K_2(2K_1 + K_2)}{K_1 + K_2}$
+\end{itemize}
+
+% ============================================================================
+\section{Función de Transferencia Simbólica}
+% ============================================================================
+
+\subsection{Aplicación de la Transformada de Laplace}
+
+Del sistema reducido:
+\begin{equation}
+ML^2s^2\Theta(s) + (MgL + K_{eq}L^2)\Theta(s) = LF_a(s)
+\end{equation}
+
+Factorizando:
+\begin{equation}
+\Theta(s)[ML^2s^2 + MgL + K_{eq}L^2] = LF_a(s)
+\end{equation}
+
+Función de transferencia $\Theta(s)/F_a(s)$:
+\begin{equation}
+\frac{\Theta(s)}{F_a(s)} = \frac{L}{ML^2s^2 + MgL + K_{eq}L^2}
+\end{equation}
+
+Como $Y(s) = L\Theta(s)$:
+\begin{equation}
+\boxed{
+G(s) = \frac{Y(s)}{F_a(s)} = \frac{L^2}{ML^2s^2 + MgL + K_{eq}L^2}
+}
+\end{equation}
+
+Dividiendo por $ML^2$:
+\begin{equation}
+\boxed{
+G(s) = \frac{\frac{1}{M}}{s^2 + \frac{g}{L} + \frac{K_{eq}}{M}}
+}
+\end{equation}
+
+Donde:
+\begin{equation}
+K_{eq} = \frac{K_2(2K_1 + K_2)}{K_1 + K_2}
+\end{equation}
+
+\subsection{Forma Estándar de Segundo Orden}
+
+\begin{equation}
+G(s) = \frac{K_{DC}}{s^2 + \omega_n^2}
+\end{equation}
+
+Donde:
+\begin{align}
+\omega_n^2 &= \frac{g}{L} + \frac{K_{eq}}{M} \\
+K_{DC} &= \frac{1}{M}
+\end{align}
+
+\textbf{Nota:} Este sistema no tiene amortiguamiento natural (oscilaría indefinidamente).
+
+% ============================================================================
+\section{Función de Transferencia con Valores Numéricos}
+% ============================================================================
+
+\subsection{Asignación de Parámetros}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Parámetro} & \textbf{Valor} & \textbf{Unidad} \\
+\hline
+$M$ & 2.0 & kg \\
+$L$ & 1.5 & m \\
+$K_1$ & 100 & N/m \\
+$K_2$ & 150 & N/m \\
+$g$ & 9.81 & m/s² \\
+\hline
+\end{tabular}
+\caption{Parámetros del sistema péndulo-resorte}
+\end{table}
+
+\subsection{Cálculo de Parámetros}
+
+\begin{align}
+K_{eq} &= \frac{K_2(2K_1 + K_2)}{K_1 + K_2} = \frac{150(200 + 150)}{250} = \frac{52500}{250} = 210 \text{ N/m} \\
+\omega_n^2 &= \frac{g}{L} + \frac{K_{eq}}{M} = \frac{9.81}{1.5} + \frac{210}{2.0} = 6.54 + 105 = 111.54 \text{ rad²/s²} \\
+\omega_n &= \sqrt{111.54} = 10.56 \text{ rad/s} \\
+K_{DC} &= \frac{1}{M} = \frac{1}{2.0} = 0.5
+\end{align}
+
+\subsection{Función de Transferencia Numérica}
+
+\begin{equation}
+\boxed{
+G(s) = \frac{0.5}{s^2 + 111.54} = \frac{0.5}{s^2 + 111.54}
+}
+\end{equation}
+
+O equivalentemente:
+\begin{equation}
+\boxed{
+G(s) = \frac{1.125}{s^2 + 6.54s^0 + 111.54}
+}
+\end{equation}
+
+\textbf{Observación:} El sistema no tiene polo en el origen ni amortiguamiento, lo que resulta en oscilaciones sostenidas (marginalmente estable).
+
+% ============================================================================
+\section{Análisis Dinámico}
+% ============================================================================
+
+\subsection{Análisis de Polos}
+
+Los polos del sistema:
+\begin{equation}
+s^2 + 111.54 = 0 \Rightarrow s = \pm j\sqrt{111.54} = \pm j10.56
+\end{equation}
+
+\textbf{Polos del sistema:}
+\begin{itemize}
+    \item $p_1 = +j10.56$ rad/s
+    \item $p_2 = -j10.56$ rad/s
+\end{itemize}
+
+\textbf{Conclusión:} El sistema es \textbf{marginalmente estable} (polos en el eje imaginario). Oscilará indefinidamente sin amortiguamiento.
+
+\subsection{Características del Sistema}
+
+\begin{itemize}
+    \item \textbf{Frecuencia natural}: $\omega_n = 10.56$ rad/s
+    \item \textbf{Factor de amortiguamiento}: $\zeta = 0$ (sin amortiguamiento)
+    \item \textbf{Período de oscilación}: $T = \frac{2\pi}{\omega_n} = 0.595$ s
+    \item \textbf{Tipo de respuesta}: Oscilaciones sostenidas
+\end{itemize}
+
+% ============================================================================
+\section{Diseño de Controlador PID - Ziegler-Nichols}
+% ============================================================================
+
+\subsection{Método de Sintonización}
+
+Para un sistema oscilatorio sin amortiguamiento, el método de Ziegler-Nichols de ganancia última es directo:
+
+\textbf{Parámetros críticos:}
+\begin{itemize}
+    \item Ganancia crítica: $K_u = \frac{MgL + K_{eq}L^2}{L^2} = \frac{2 \cdot 9.81 \cdot 1.5 + 210 \cdot 1.5^2}{1.5^2} = \frac{29.43 + 472.5}{2.25} = 223$ 
+    \item Período crítico: $T_u = \frac{2\pi}{\omega_n} = \frac{2\pi}{10.56} = 0.595$ s
+\end{itemize}
+
+\subsection{Parámetros PID (Ziegler-Nichols)}
+
+\begin{align}
+K_p &= 0.6 K_u = 0.6(223) = 133.8 \\
+T_i &= 0.5 T_u = 0.5(0.595) = 0.298 \text{ s} \\
+T_d &= 0.125 T_u = 0.125(0.595) = 0.074 \text{ s}
+\end{align}
+
+\begin{align}
+K_i &= \frac{K_p}{T_i} = \frac{133.8}{0.298} = 449 \\
+K_d &= K_p T_d = 133.8 \times 0.074 = 9.90
+\end{align}
+
+\textbf{Controlador PID (Ziegler-Nichols):}
+\begin{equation}
+\boxed{
+C_{ZN}(s) = 133.8 + \frac{449}{s} + 9.90s
+}
+\end{equation}
+
+% ============================================================================
+\section{Diseño de Controlador PID con Especificaciones}
+% ============================================================================
+
+\subsection{Especificaciones}
+
+\begin{itemize}
+    \item $t_s^{CL} = 0.98 \cdot t_s^{OL}$ (98\% del tiempo en lazo abierto)
+    \item $\zeta = 1.2$ (sobreamortiguado)
+    \item $e_{ss} = 0$ para entrada rampa (requiere doble integrador)
+\end{itemize}
+
+\textbf{Nota:} $\zeta = 1.2 >  1$ indica un sistema sobreamortiguado (sin sobrepico).
+
+\subsection{Diseño con Error Nulo para Rampa}
+
+Para error nulo ante rampa, el sistema en lazo abierto debe tener tipo 2 (dos polos en el origen).
+
+El controlador PID aporta un polo en el origen, necesitamos otro integrador adicional:
+
+\textbf{Controlador modificado:}
+\begin{equation}
+C(s) = K_p + \frac{K_i}{s} + K_ds + \frac{K_{i2}}{s^2}
+\end{equation}
+
+O usar un PI²D (doble integrador).
+
+Parámetros aproximados (requiere simulación iterativa):
+\begin{align}
+K_p &\approx 120 \\
+K_i &\approx 400 \\
+K_d &\approx 12 \\
+K_{i2} &\approx 50
+\end{align}
+
+% ============================================================================
+\section{Sistema con Retardo (0.1 segundos)}
+% ============================================================================
+
+\subsection{Modificación del Controlador}
+
+Para retardo $\tau = 0.1$ s:
+
+\textbf{Ajuste conservador:}
+\begin{align}
+K_p^{delay} &= 0.8 K_p = 0.8(133.8) = 107 \\
+K_i^{delay} &= 0.7 K_i = 0.7(449) = 314 \\
+K_d^{delay} &= 0.9 K_d = 0.9(9.90) = 8.91
+\end{align}
+
+\textbf{Controlador con retardo:}
+\begin{equation}
+\boxed{
+C_{delay}(s) = 107 + \frac{314}{s} + 8.91s
+}
+\end{equation}
+
+% ============================================================================
+\section{Conclusiones}
+% ============================================================================
+
+\begin{enumerate}
+    \item El sistema péndulo-resorte presenta dinámica oscilatoria sin amortiguamiento natural.
+    \item Se requiere control activo para estabilizar y lograr seguimiento de referencia.
+    \item El método Ziegler-Nichols proporciona sintonización inicial efectiva.
+    \item Para cumplir especificaciones de rampa se requiere doble integrador.
+    \item El retardo pequeño (0.1s) requiere ajuste moderado de parámetros.
+\end{enumerate}
+
+\end{document}

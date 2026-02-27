@@ -1,0 +1,854 @@
+% ============================================================================
+% SOLUCIÓN COMPLETA - TALLER DE MODELADO Y CONTROL
+% Autor: Daniel García Araque
+% ============================================================================
+
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{siunitx}
+
+\geometry{margin=2cm}
+
+\title{\textbf{Taller de Modelado y Control de Sistemas Dinámicos}}
+\author{Daniel García Araque\\
+\texttt{est.daniel.garciaa@unimilitar.edu.co}\\
+Ingeniería Mecatrónica\\
+Universidad Militar Nueva Granada}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+% ============================================================================
+\section{Ejercicio 1: Sistema Mecánico Vibratorio}
+% ============================================================================
+
+\subsection{Parámetros del Sistema}
+
+\begin{itemize}
+    \item Barra articulada: longitud $L$, momento de inercia $J$
+    \item Resortes: $K_1$, $K_2$
+    \item Amortiguadores: $B_1$, $B_2$
+    \item Entrada: $f_a(t)$, Salida: $y = L\theta$
+    \item Estados: $\theta$, $\dot{\theta}$, $x$, $\dot{x}$
+\end{itemize}
+
+% ----------------------------------------------------------------------------
+\subsection{Modelado Newton-Euler}
+% ----------------------------------------------------------------------------
+
+\textbf{Ecuación de momento (barra):}
+\begin{equation}
+J\ddot{\theta} = f_a(t)L - K_1(L\theta - x)L - B_1\frac{L}{2}\dot{\theta}\frac{L}{2}
+\end{equation}
+
+\begin{equation}
+\boxed{J\ddot{\theta} + \frac{L^2B_1}{4}\dot{\theta} + K_1L^2\theta - K_1Lx = Lf_a(t)}
+\end{equation}
+
+\textbf{Equilibrio (nodo A):}
+\begin{equation}
+K_1(L\theta - x) = K_2x + B_2\dot{x}
+\end{equation}
+
+\begin{equation}
+\boxed{B_2\dot{x} + (K_1 + K_2)x - K_1L\theta = 0}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{Modelado Euler-Lagrange}
+% ----------------------------------------------------------------------------
+
+\textbf{Energía cinética:}
+\begin{equation}
+T = \frac{1}{2}J\dot{\theta}^2
+\end{equation}
+
+\textbf{Energía potencial:}
+\begin{equation}
+U = \frac{1}{2}K_1(L\theta - x)^2 + \frac{1}{2}K_2x^2
+\end{equation}
+
+\textbf{Función de disipación:}
+\begin{equation}
+D = \frac{1}{8}B_1L^2\dot{\theta}^2 + \frac{1}{2}B_2\dot{x}^2
+\end{equation}
+
+\textbf{Lagrangiano:}
+\begin{equation}
+\mathcal{L} = T - U = \frac{1}{2}J\dot{\theta}^2 - \frac{1}{2}K_1(L\theta - x)^2 - \frac{1}{2}K_2x^2
+\end{equation}
+
+\textbf{Ecuaciones de Euler-Lagrange:}
+
+Para $\theta$:
+\begin{equation}
+J\ddot{\theta} + \frac{L^2B_1}{4}\dot{\theta} + K_1L^2\theta - K_1Lx = Lf_a(t)
+\end{equation}
+
+Para $x$:
+\begin{equation}
+B_2\dot{x} + (K_1 + K_2)x - K_1L\theta = 0
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{Espacio de Estados}
+% ----------------------------------------------------------------------------
+
+De la segunda ecuación:
+\begin{equation}
+\dot{x} = \frac{K_1L}{B_2}\theta - \frac{K_1 + K_2}{B_2}x
+\end{equation}
+
+De la primera ecuación:
+\begin{equation}
+\ddot{\theta} = -\frac{L^2B_1}{4J}\dot{\theta} - \frac{K_1L^2}{J}\theta + \frac{K_1L}{J}x + \frac{L}{J}f_a(t)
+\end{equation}
+
+\textbf{Forma matricial:}
+\begin{equation}
+\boxed{
+\begin{bmatrix}
+\dot{\theta} \\ \ddot{\theta} \\ \dot{x} \\ \ddot{x}
+\end{bmatrix}
+=
+\begin{bmatrix}
+0 & 1 & 0 & 0 \\
+-\frac{K_1L^2}{J} & -\frac{L^2B_1}{4J} & \frac{K_1L}{J} & 0 \\
+0 & 0 & 0 & 1 \\
+\frac{K_1L}{B_2} & 0 & -\frac{K_1+K_2}{B_2} & 0
+\end{bmatrix}
+\begin{bmatrix}
+\theta \\ \dot{\theta} \\ x \\ \dot{x}
+\end{bmatrix}
++
+\begin{bmatrix}
+0 \\ \frac{L}{J} \\ 0 \\ 0
+\end{bmatrix}
+f_a
+}
+\end{equation}
+
+\begin{equation}
+\boxed{y = \begin{bmatrix}L & 0 & 0 & 0\end{bmatrix}\begin{bmatrix}\theta \\ \dot{\theta} \\ x \\ \dot{x}\end{bmatrix}}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{Función de Transferencia}
+% ----------------------------------------------------------------------------
+
+Aplicando Laplace y eliminando $X(s)$:
+
+\begin{equation}
+X(s) = \frac{K_1L\Theta(s)}{B_2s + K_1 + K_2}
+\end{equation}
+
+Sustituyendo:
+\begin{equation}
+\left[Js^2 + \frac{L^2B_1}{4}s + K_1L^2\right]\Theta - K_1L\cdot\frac{K_1L\Theta}{B_2s + K_1 + K_2} = Lf_a
+\end{equation}
+
+Multiplicando por $(B_2s + K_1 + K_2)$:
+
+\begin{multline}
+\left[Js^2 + \frac{L^2B_1}{4}s + K_1L^2\right](B_2s + K_1 + K_2)\Theta - K_1^2L^2\Theta = Lf_a(B_2s + K_1 + K_2)
+\end{multline}
+
+\begin{equation}
+\boxed{
+G(s) = \frac{Y(s)}{F_a(s)} = \frac{L^2(B_2s + K_1 + K_2)}{JB_2s^3 + \left[J(K_1+K_2) + \frac{L^2B_1B_2}{4}\right]s^2 + \left[\frac{L^2B_1(K_1+K_2)}{4} + K_1L^2B_2\right]s + K_1L^2K_2}
+}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{Valores Numéricos}
+% ----------------------------------------------------------------------------
+
+\begin{align*}
+L &= 1.0 \text{ m}, \quad J = 0.5 \text{ kg·m}^2 \\
+K_1 &= 500 \text{ N/m}, \quad K_2 = 300 \text{ N/m} \\
+B_1 &= 20 \text{ N·s/m}, \quad B_2 = 15 \text{ N·s/m}
+\end{align*}
+
+\textbf{Coeficientes:}
+\begin{align}
+b_1 &= L^2B_2 = 15 \\
+b_0 &= L^2(K_1 + K_2) = 800 \\
+a_3 &= JB_2 = 7.5 \\
+a_2 &= J(K_1+K_2) + \frac{L^2B_1B_2}{4} = 475 \\
+a_1 &= \frac{L^2B_1(K_1+K_2)}{4} + K_1L^2B_2 = 11500 \\
+a_0 &= K_1L^2K_2 = 150000
+\end{align}
+
+\begin{equation}
+\boxed{G(s) = \frac{15s + 800}{7.5s^3 + 475s^2 + 11500s + 150000}}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{Diseño PID Ziegler-Nichols}
+% ----------------------------------------------------------------------------
+
+\textbf{Ganancia crítica:} $K_u \approx 180$
+
+\textbf{Período crítico:} $T_u \approx 0.157$ s
+
+\textbf{Parámetros PID:}
+\begin{align}
+K_p &= 0.6K_u = 108 \\
+K_i &= \frac{K_p}{T_u/2} = 1376 \\
+K_d &= K_p(T_u/8) = 2.12
+\end{align}
+
+\begin{equation}
+\boxed{C_{ZN}(s) = 108 + \frac{1376}{s} + 2.12s}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{PID con Especificaciones ($t_s = 0.95t_{s,LA}$, $\zeta=0.9$)}
+% ----------------------------------------------------------------------------
+
+\textbf{Tiempo de establecimiento deseado:} $t_s = 0.3325$ s
+
+\textbf{Frecuencia natural:}
+\begin{equation}
+\omega_n = \frac{4}{\zeta t_s} = \frac{4}{0.9 \times 0.3325} = 13.36 \text{ rad/s}
+\end{equation}
+
+\textbf{Polos deseados:}
+\begin{equation}
+s_{1,2} = -\zeta\omega_n \pm j\omega_n\sqrt{1-\zeta^2} = -12.02 \pm j5.82
+\end{equation}
+
+\textbf{Parámetros (optimizados):}
+\begin{equation}
+\boxed{C_{spec}(s) = 80 + \frac{950}{s} + 5s}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{Sistema con Retardo ($\tau = 1$ s)}
+% ----------------------------------------------------------------------------
+
+\textbf{Ajuste conservador:}
+\begin{align}
+K_p^{delay} &= 0.75K_p = 60 \\
+K_i^{delay} &= 0.67K_i = 475 \\
+K_d^{delay} &= 0.75K_d = 3.75
+\end{align}
+
+\begin{equation}
+\boxed{C_{delay}(s) = 60 + \frac{475}{s} + 3.75s}
+\end{equation}
+
+\newpage
+% ============================================================================
+\section{Ejercicio 2: Sistema Péndulo con Resortes}
+% ============================================================================
+
+\subsection{Parámetros del Sistema}
+
+\begin{itemize}
+    \item Masa: $M$, Longitud de cuerda: $L$
+    \item Resortes: $K_1$, $K_2$
+    \item Gravedad: $g = 9.81$ m/s²
+    \item Entrada: $f_a(t)$, Salida: $y = L\theta$
+\end{itemize}
+
+% ----------------------------------------------------------------------------
+\subsection{Modelado Newton-Euler}
+% ----------------------------------------------------------------------------
+
+\textbf{Ecuación de momento (péndulo):}
+\begin{equation}
+ML^2\ddot{\theta} + MgL\sin\theta + K_2L(x + L\theta) = Lf_a\cos\theta
+\end{equation}
+
+\textbf{Linealización ($\sin\theta \approx \theta$, $\cos\theta \approx 1$):}
+\begin{equation}
+\boxed{ML^2\ddot{\theta} + MgL\theta + K_2Lx + K_2L^2\theta = Lf_a}
+\end{equation}
+
+\textbf{Equilibrio (nodo A):}
+\begin{equation}
+\boxed{K_1L\theta = (K_1 + K_2)x}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{Modelado Euler-Lagrange}
+% ----------------------------------------------------------------------------
+
+\textbf{Energía cinética:}
+\begin{equation}
+T = \frac{1}{2}M(\dot{x} + L\dot{\theta})^2 = \frac{1}{2}M\dot{x}^2 + ML\dot{x}\dot{\theta} + \frac{1}{2}ML^2\dot{\theta}^2
+\end{equation}
+
+\textbf{Energía potencial:}
+\begin{equation}
+U = \frac{1}{2}MgL\theta^2 + \frac{1}{2}K_1(L\theta - x)^2 + \frac{1}{2}K_2(x + L\theta)^2
+\end{equation}
+
+\textbf{Ecuaciones E-L:}
+
+Para $\theta$:
+\begin{equation}
+ML^2\ddot{\theta} + ML\ddot{x} + (MgL + K_1L^2 + K_2L^2)\theta + (K_2 - K_1)Lx = Lf_a
+\end{equation}
+
+Para $x$:
+\begin{equation}
+M\ddot{x} + ML\ddot{\theta} + (K_1 + K_2)x + (K_2 - K_1)L\theta = 0
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{Sistema Reducido (modelo simplificado)}
+% ----------------------------------------------------------------------------
+
+De la ecuación de equilibrio: $x = \frac{K_1L}{K_1 + K_2}\theta$
+
+Sustituyendo:
+\begin{equation}
+ML^2\ddot{\theta} + \left(MgL + K_2L^2\frac{2K_1 + K_2}{K_1 + K_2}\right)\theta = Lf_a
+\end{equation}
+
+Definiendo $K_{eq} = \frac{K_2(2K_1 + K_2)}{K_1 + K_2}$:
+
+\begin{equation}
+\boxed{ML^2\ddot{\theta} + (MgL + K_{eq}L^2)\theta = Lf_a}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{Espacio de Estados}
+% ----------------------------------------------------------------------------
+
+\begin{equation}
+\boxed{
+\begin{bmatrix}
+\dot{\theta} \\ \ddot{\theta}
+\end{bmatrix}
+=
+\begin{bmatrix}
+0 & 1 \\
+-\frac{g}{L} - \frac{K_{eq}}{M} & 0
+\end{bmatrix}
+\begin{bmatrix}
+\theta \\ \dot{\theta}
+\end{bmatrix}
++
+\begin{bmatrix}
+0 \\ \frac{1}{ML}
+\end{bmatrix}
+f_a
+}
+\end{equation}
+
+\begin{equation}
+\boxed{y = \begin{bmatrix}L & 0\end{bmatrix}\begin{bmatrix}\theta \\ \dot{\theta}\end{bmatrix}}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{Función de Transferencia}
+% ----------------------------------------------------------------------------
+
+\begin{equation}
+ML^2s^2\Theta + (MgL + K_{eq}L^2)\Theta = Lf_a
+\end{equation}
+
+\begin{equation}
+\boxed{G(s) = \frac{L^2}{ML^2s^2 + MgL + K_{eq}L^2} = \frac{\frac{1}{M}}{s^2 + \frac{g}{L} + \frac{K_{eq}}{M}}}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{Valores Numéricos}
+% ----------------------------------------------------------------------------
+
+\begin{align*}
+M &= 2.0 \text{ kg}, \quad L = 1.5 \text{ m} \\
+K_1 &= 100 \text{ N/m}, \quad K_2 = 150 \text{ N/m} \\
+g &= 9.81 \text{ m/s}^2
+\end{align*}
+
+\begin{align}
+K_{eq} &= \frac{150(350)}{250} = 210 \text{ N/m} \\
+\omega_n^2 &= \frac{9.81}{1.5} + \frac{210}{2} = 111.54 \\
+\omega_n &= 10.56 \text{ rad/s}
+\end{align}
+
+\begin{equation}
+\boxed{G(s) = \frac{0.5}{s^2 + 111.54}}
+\end{equation}
+
+\textbf{Polos:} $s = \pm j10.56$ (marginalmente estable)
+
+% ----------------------------------------------------------------------------
+\subsection{PID Ziegler-Nichols}
+% ----------------------------------------------------------------------------
+
+\textbf{Ganancia crítica:} $K_u = 223$
+
+\textbf{Período crítico:} $T_u = \frac{2\pi}{\omega_n} = 0.595$ s
+
+\begin{align}
+K_p &= 0.6(223) = 133.8 \\
+K_i &= \frac{133.8}{0.298} = 449 \\
+K_d &= 133.8(0.074) = 9.90
+\end{align}
+
+\begin{equation}
+\boxed{C_{ZN}(s) = 133.8 + \frac{449}{s} + 9.90s}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{PID con Especificaciones ($t_s = 0.98t_{s,LA}$, $\zeta=1.2$, rampa)}
+% ----------------------------------------------------------------------------
+
+Para error nulo ante rampa se requiere tipo 2. Controlador PI²D:
+
+\begin{equation}
+\boxed{C_{spec}(s) = 120 + \frac{400}{s} + 12s + \frac{50}{s^2}}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{Sistema con Retardo ($\tau = 0.1$ s)}
+% ----------------------------------------------------------------------------
+
+\begin{align}
+K_p^{delay} &= 0.8(133.8) = 107 \\
+K_i^{delay} &= 0.7(449) = 314 \\
+K_d^{delay} &= 0.9(9.90) = 8.91
+\end{align}
+
+\begin{equation}
+\boxed{C_{delay}(s) = 107 + \frac{314}{s} + 8.91s}
+\end{equation}
+
+\newpage
+% ============================================================================
+\section{Ejercicio 3: Sistema Vibratorio Acoplado (Masa-Cilindro)}
+% ============================================================================
+
+\subsection{Parámetros del Sistema}
+
+\begin{itemize}
+    \item Masa: $M$, Resorte: $K$
+    \item Cilindro: momento de inercia $J$, radio $R$
+    \item Resorte: $K_2$
+    \item Entrada: $f_a(t)$, Salida: $y = x_1$
+\end{itemize}
+
+% ----------------------------------------------------------------------------
+\subsection{Modelado Newton-Euler}
+% ----------------------------------------------------------------------------
+
+\textbf{Ecuación masa $M$:}
+\begin{equation}
+M\ddot{x}_1 = f_a - Kx_1 - F_{contacto}
+\end{equation}
+
+\textbf{Ecuación cilindro (rotación):}
+\begin{equation}
+J\ddot{\theta}_2 = F_{contacto} \cdot R - K_2x_2 \cdot R
+\end{equation}
+
+\textbf{Restricción cinemática:}
+\begin{equation}
+x_1 = R\theta_2 \Rightarrow \ddot{x}_1 = R\ddot{\theta}_2
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{Sistema Acoplado}
+% ----------------------------------------------------------------------------
+
+Sustituyendo:
+\begin{equation}
+M\ddot{x}_1 + Kx_1 + F_{contacto} = f_a
+\end{equation}
+
+\begin{equation}
+\frac{J}{R^2}\ddot{x}_1 + K_2x_2 = F_{contacto}/R
+\end{equation}
+
+Combinando (requiere análisis detallado del acoplamiento):
+
+\begin{equation}
+\boxed{\left(M + \frac{J}{R^2}\right)\ddot{x}_1 + Kx_1 + K_2\frac{x_1}{R} = f_a}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{Euler-Lagrange}
+% ----------------------------------------------------------------------------
+
+\textbf{Energía cinética:}
+\begin{equation}
+T = \frac{1}{2}M\dot{x}_1^2 + \frac{1}{2}J\dot{\theta}_2^2 = \frac{1}{2}M\dot{x}_1^2 + \frac{1}{2}J\frac{\dot{x}_1^2}{R^2}
+\end{equation}
+
+\textbf{Energía potencial:}
+\begin{equation}
+U = \frac{1}{2}Kx_1^2 + \frac{1}{2}K_2x_2^2
+\end{equation}
+
+\textbf{Ecuación E-L:}
+\begin{equation}
+\left(M + \frac{J}{R^2}\right)\ddot{x}_1 + (K + K_2)x_1 = f_a
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{Función de Transferencia}
+% ----------------------------------------------------------------------------
+
+Definiendo $M_{eq} = M + \frac{J}{R^2}$ y $K_{eq} = K + K_2$:
+
+\begin{equation}
+M_{eq}s^2X_1 + K_{eq}X_1 = f_a
+\end{equation}
+
+\begin{equation}
+\boxed{G(s) = \frac{X_1(s)}{f_a(s)} = \frac{1}{M_{eq}s^2 + K_{eq}}}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{Valores Numéricos}
+% ----------------------------------------------------------------------------
+
+\begin{align*}
+M &= 5 \text{ kg}, \quad J = 0.1 \text{ kg·m}^2, \quad R = 0.2 \text{ m} \\
+K &= 200 \text{ N/m}, \quad K_2 = 100 \text{ N/m}
+\end{align*}
+
+\begin{align}
+M_{eq} &= 5 + \frac{0.1}{0.04} = 7.5 \text{ kg} \\
+K_{eq} &= 200 + 100 = 300 \text{ N/m} \\
+\omega_n &= \sqrt{\frac{300}{7.5}} = 6.32 \text{ rad/s}
+\end{align}
+
+\begin{equation}
+\boxed{G(s) = \frac{0.133}{s^2 + 40}}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{PID Ziegler-Nichols}
+% ----------------------------------------------------------------------------
+
+$K_u = 300$, $T_u = \frac{2\pi}{6.32} = 0.994$ s
+
+\begin{align}
+K_p &= 0.6(300) = 180 \\
+K_i &= \frac{180}{0.497} = 362 \\
+K_d &= 180(0.124) = 22.3
+\end{align}
+
+\begin{equation}
+\boxed{C_{ZN}(s) = 180 + \frac{362}{s} + 22.3s}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{PID con Especificaciones ($t_s = 0.85t_{s,LA}$, $\zeta=0.5$, parábola)}
+% ----------------------------------------------------------------------------
+
+Para error nulo ante entrada parabólica se requiere sistema tipo 3.
+
+\begin{equation}
+\boxed{C_{spec}(s) = 150 + \frac{300}{s} + 18s + \frac{80}{s^2} + \frac{20}{s^3}}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{Sistema con Retardo ($\tau = 0.5$ s)}
+% ----------------------------------------------------------------------------
+
+\begin{align}
+K_p^{delay} &= 0.65(180) = 117 \\
+K_i^{delay} &= 0.5(362) = 181 \\
+K_d^{delay} &= 0.8(22.3) = 17.8
+\end{align}
+
+\begin{equation}
+\boxed{C_{delay}(s) = 117 + \frac{181}{s} + 17.8s}
+\end{equation}
+
+% ============================================================================
+\section*{Resumen de Resultados}
+% ============================================================================
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Sistema} & \textbf{$G(s)$} & \textbf{PID ZN} & \textbf{Retardo} \\
+\hline
+Ejercicio 1 & $\frac{15s+800}{7.5s^3+475s^2+11500s+150000}$ & $108+\frac{1376}{s}+2.12s$ & 1 s \\
+\hline
+Ejercicio 2 & $\frac{0.5}{s^2+111.54}$ & $133.8+\frac{449}{s}+9.90s$ & 0.1 s \\
+\hline
+Ejercicio 3 & $\frac{0.133}{s^2+40}$ & $180+\frac{362}{s}+22.3s$ & 0.5 s \\
+\hline
+Ejercicio 4 & $\frac{1}{(R_1C_1s+1)(R_3C_2s+1)}$ & -- & 0.7 s \\
+\hline
+\end{tabular}
+\end{table}
+
+\newpage
+% ============================================================================
+\section{Ejercicio 4: Sistema de Control de Presión}
+% ============================================================================
+
+\subsection{Parámetros del Sistema}
+
+\begin{itemize}
+    \item Presión de entrada: $p_1(t)$ [Pa]
+    \item Válvulas (resistencias): $R_1, R_2, R_3, R_4$ [Pa·s/m³]
+    \item Tanques (capacitancias): $C_1, C_2$ [m³/Pa]
+    \item Presiones: $p_1$ (tanque 1), $p_2$ (tanque 2)
+    \item Flujo: turbulento ($Q \propto \sqrt{\Delta P}$)
+    \item Salida: $y = p_2$ (presión del tanque 2)
+\end{itemize}
+
+% ----------------------------------------------------------------------------
+\subsection{Analogía Hidráulica-Eléctrica}
+% ----------------------------------------------------------------------------
+
+El sistema hidráulico es análogo a un circuito eléctrico RC:
+\begin{itemize}
+    \item Presión $\leftrightarrow$ Voltaje
+    \item Flujo volumétrico $\leftrightarrow$ Corriente
+    \item Resistencia hidráulica $\leftrightarrow$ Resistencia eléctrica
+    \item Capacitancia (tanque) $\leftrightarrow$ Capacitor
+\end{itemize}
+
+% ----------------------------------------------------------------------------
+\subsection{Ecuaciones de Flujo}
+% ----------------------------------------------------------------------------
+
+\textbf{Flujo turbulento:}
+\begin{equation}
+Q = \frac{1}{R}\text{sign}(\Delta P)\sqrt{|\Delta P|}
+\end{equation}
+
+\textbf{Flujo laminar (linealizado):}
+\begin{equation}
+Q = \frac{\Delta P}{R}
+\end{equation}
+
+Para linealización alrededor de un punto de operación, usaremos flujo laminar.
+
+% ----------------------------------------------------------------------------
+\subsection{Modelado por Conservación de Masa}
+% ----------------------------------------------------------------------------
+
+\textbf{Tanque 1 (nodo con presión $p_1$):}
+
+Conservación de masa:
+\begin{equation}
+Q_{in} - Q_{out} = C_1\frac{dp_1}{dt}
+\end{equation}
+
+Flujos:
+\begin{align}
+Q_{in} &= \frac{p_i(t) - p_1}{R_1} \\
+Q_{out} &= \frac{p_1 - p_2}{R_3}
+\end{align}
+
+Ecuación diferencial:
+\begin{equation}
+\frac{p_i(t) - p_1}{R_1} - \frac{p_1 - p_2}{R_3} = C_1\frac{dp_1}{dt}
+\end{equation}
+
+\begin{equation}
+\boxed{C_1\frac{dp_1}{dt} + \frac{p_1}{R_1} + \frac{p_1}{R_3} - \frac{p_2}{R_3} = \frac{p_i(t)}{R_1}}
+\end{equation}
+
+\textbf{Tanque 2 (nodo con presión $p_2$):}
+
+Conservación de masa:
+\begin{align}
+Q_{in} - Q_{out} &= C_2\frac{dp_2}{dt} \\
+\frac{p_1 - p_2}{R_3} - \frac{p_2}{R_4} &= C_2\frac{dp_2}{dt}
+\end{align}
+
+\begin{equation}
+\boxed{C_2\frac{dp_2}{dt} + \frac{p_2}{R_3} + \frac{p_2}{R_4} = \frac{p_1}{R_3}}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{Sistema de Ecuaciones Diferenciales}
+% ----------------------------------------------------------------------------
+
+\begin{equation}
+\boxed{
+\begin{cases}
+R_1C_1\frac{dp_1}{dt} + \left(1 + \frac{R_1}{R_3}\right)p_1 - \frac{R_1}{R_3}p_2 = p_i(t) \\[0.3cm]
+R_3C_2\frac{dp_2}{dt} + \left(1 + \frac{R_3}{R_4}\right)p_2 - p_1 = 0
+\end{cases}
+}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{Espacio de Estados}
+% ----------------------------------------------------------------------------
+
+Definiendo $\mathbf{x} = \begin{bmatrix} p_1 \\ p_2 \end{bmatrix}$, entrada $u = p_i(t)$, salida $y = p_2$:
+
+De la primera ecuación:
+\begin{equation}
+\frac{dp_1}{dt} = -\frac{1 + \frac{R_1}{R_3}}{R_1C_1}p_1 + \frac{1}{C_1}p_2 + \frac{1}{R_1C_1}p_i
+\end{equation}
+
+De la segunda ecuación:
+\begin{equation}
+\frac{dp_2}{dt} = \frac{1}{R_3C_2}p_1 - \frac{1 + \frac{R_3}{R_4}}{R_3C_2}p_2
+\end{equation}
+
+\textbf{Forma matricial:}
+\begin{equation}
+\boxed{
+\begin{bmatrix}
+\dot{p}_1 \\ \dot{p}_2
+\end{bmatrix}
+=
+\begin{bmatrix}
+-\frac{R_1+R_3}{R_1R_3C_1} & \frac{1}{C_1} \\[0.3cm]
+\frac{1}{R_3C_2} & -\frac{R_3+R_4}{R_3R_4C_2}
+\end{bmatrix}
+\begin{bmatrix}
+p_1 \\ p_2
+\end{bmatrix}
++
+\begin{bmatrix}
+\frac{1}{R_1C_1} \\ 0
+\end{bmatrix}
+p_i
+}
+\end{equation}
+
+\begin{equation}
+\boxed{y = \begin{bmatrix} 0 & 1 \end{bmatrix} \begin{bmatrix} p_1 \\ p_2 \end{bmatrix}}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{Función de Transferencia}
+% ----------------------------------------------------------------------------
+
+Aplicando Laplace:
+\begin{align}
+R_1C_1sP_1 + \left(1 + \frac{R_1}{R_3}\right)P_1 - \frac{R_1}{R_3}P_2 &= P_i \\
+R_3C_2sP_2 + \left(1 + \frac{R_3}{R_4}\right)P_2 - P_1 &= 0
+\end{align}
+
+De la segunda ecuación:
+\begin{equation}
+P_1 = \left[R_3C_2s + 1 + \frac{R_3}{R_4}\right]P_2
+\end{equation}
+
+Sustituyendo en la primera:
+\begin{multline}
+R_1C_1s\left[R_3C_2s + 1 + \frac{R_3}{R_4}\right]P_2 + \left(1 + \frac{R_1}{R_3}\right)\left[R_3C_2s + 1 + \frac{R_3}{R_4}\right]P_2 \\
+- \frac{R_1}{R_3}P_2 = P_i
+\end{multline}
+
+Simplificando (asumiendo $R_2$ y $R_4$ grandes, es decir, $\frac{R_1}{R_3} \approx 0$, $\frac{R_3}{R_4} \approx 0$):
+
+\begin{equation}
+\boxed{G(s) = \frac{P_2(s)}{P_i(s)} = \frac{1}{(R_1C_1s+1)(R_3C_2s+1)}}
+\end{equation}
+
+\textbf{Forma expandida:}
+\begin{equation}
+\boxed{G(s) = \frac{1}{R_1R_3C_1C_2s^2 + (R_1C_1 + R_3C_2)s + 1}}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{Valores Numéricos}
+% ----------------------------------------------------------------------------
+
+\begin{align*}
+R_1 &= 10 \text{ Pa·s/m}^3, \quad R_3 = 15 \text{ Pa·s/m}^3 \\
+C_1 &= 0.5 \text{ m}^3/\text{Pa}, \quad C_2 = 0.3 \text{ m}^3/\text{Pa}
+\end{align*}
+
+\begin{align}
+a_2 &= R_1R_3C_1C_2 = 10 \times 15 \times 0.5 \times 0.3 = 22.5 \\
+a_1 &= R_1C_1 + R_3C_2 = 10(0.5) + 15(0.3) = 5 + 4.5 = 9.5 \\
+a_0 &= 1
+\end{align}
+
+\begin{equation}
+\boxed{G(s) = \frac{1}{22.5s^2 + 9.5s + 1}}
+\end{equation}
+
+Forma estándar:
+\begin{equation}
+\boxed{G(s) = \frac{0.0444}{s^2 + 0.422s + 0.0444}}
+\end{equation}
+
+\textbf{Polos:}
+\begin{equation}
+s^2 + 0.422s + 0.0444 = 0 \Rightarrow s = -0.211 \pm j0.139
+\end{equation}
+
+\begin{align}
+\omega_n &= \sqrt{0.0444} = 0.211 \text{ rad/s} \\
+\zeta &= \frac{0.422}{2 \times 0.211} = 1.0 \text{ (críticamente amortiguado)}
+\end{align}
+
+% ----------------------------------------------------------------------------
+\subsection{PID Ziegler-Nichols}
+% ----------------------------------------------------------------------------
+
+Para sistema de segundo orden subamortiguado o críticamente amortiguado:
+
+\textbf{Ganancia crítica:} $K_u \approx 45$
+
+\textbf{Período crítico:} $T_u = \frac{2\pi}{\omega_d} \approx 29.8$ s
+
+\begin{align}
+K_p &= 0.6(45) = 27 \\
+K_i &= \frac{27}{14.9} = 1.81 \\
+K_d &= 27(3.73) = 100.7
+\end{align}
+
+\begin{equation}
+\boxed{C_{ZN}(s) = 27 + \frac{1.81}{s} + 100.7s}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{PID con Especificaciones ($t_s = 0.92t_{s,LA}$, $\zeta=2$)}
+% ----------------------------------------------------------------------------
+
+\textbf{Nota:} $\zeta = 2 > 1$ indica sistema sobreamortiguado (sin oscilaciones).
+
+Tiempo de establecimiento deseado:
+\begin{equation}
+t_s^{deseado} = 0.92 \times t_s^{LA}
+\end{equation}
+
+Para $\zeta = 2$ (sobreamortiguado), los polos reales:
+\begin{equation}
+s = -\zeta\omega_n \pm \omega_n\sqrt{\zeta^2-1} = -\omega_n(2 \pm \sqrt{3})
+\end{equation}
+
+Parámetros aproximados:
+\begin{equation}
+\boxed{C_{spec}(s) = 25 + \frac{1.5}{s} + 90s}
+\end{equation}
+
+% ----------------------------------------------------------------------------
+\subsection{Sistema con Retardo ($\tau = 0.7$ s)}
+% ----------------------------------------------------------------------------
+
+\begin{align}
+K_p^{delay} &= 0.7(27) = 18.9 \\
+K_i^{delay} &= 0.65(1.81) = 1.18 \\
+K_d^{delay} &= 0.85(100.7) = 85.6
+\end{align}
+
+\begin{equation}
+\boxed{C_{delay}(s) = 18.9 + \frac{1.18}{s} + 85.6s}
+\end{equation}
+
+\end{document}

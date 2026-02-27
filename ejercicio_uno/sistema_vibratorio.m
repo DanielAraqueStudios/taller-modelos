@@ -198,8 +198,8 @@ grid on;
 title('Lugar de las Raíces');
 
 %% GUARDAR DATOS DEL SISTEMA
-save('datos_sistema.mat', 'G', 'sys_ss', 'L', 'J', 'K1', 'K2', 'B1', 'B2', ...
-     'polos', 'ceros', 'A', 'B', 'C', 'D');
+save('ejercicio_uno/datos_sistema.mat', 'G', 'sys_ss', 'L', 'J', 'K1', 'K2', 'B1', 'B2', ...
+     'polos', 'ceros', 'A', 'B', 'C', 'D', 'num', 'den', 'b1', 'b0', 'a3', 'a2', 'a1', 'a0');
 
-fprintf('\n✓ Datos del sistema guardados en "datos_sistema.mat"\n');
+fprintf('\n✓ Datos del sistema guardados en "ejercicio_uno/datos_sistema.mat"\n');
 fprintf('\n=== FIN DEL ANÁLISIS ===\n');
